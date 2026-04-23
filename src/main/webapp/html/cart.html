@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Cart - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="fas fa-th-list mr-2"></i>Categories</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="checkout.html"><i class="fas fa-money-check-alt mr-2"></i>Checkout</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="wishlist.html"><i class="fas fa-heart"></i> <span id="wishlist-item" class="badge badge-danger"></span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="cart.html"><i class="fas fa-shopping-cart"></i> <span id="cart-item" class="badge badge-danger"></span></a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div id="message"></div>
+        <div id="realtime-notifications" class="mb-3"></div>
+        <div class="table-responsive mt-2">
+          <table class="table table-bordered table-striped text-center">
+            <thead>
+              <tr>
+                <td colspan="7">
+                  <h4 class="text-center text-info m-0">Products in your cart!</h4>
+                </td>
+              </tr>
+              <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Product</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Total Price</th>
+                <th>
+                  <a href="#" class="badge-danger badge p-1" id="clear-cart"><i class="fas fa-trash"></i>&nbsp;&nbsp;Clear Cart</a>
+                </th>
+              </tr>
+            </thead>
+            <tbody id="cart-items">
+              <!-- Cart items will be loaded here -->
+              <tr>
+                <td colspan="7" class="text-center">
+                  <div class="spinner-border" role="status">
+                    <span class="sr-only">Loading...</span>
+                  </div>
+                  <p>Loading cart items...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Initialize WebSocket connection
+    var ws = new WebSocket("ws://localhost:8080/farmgo/notifications");
+    
+    ws.onopen = function(event) {
+      console.log("WebSocket connection opened");
+      showNotification("Connected to real-time notifications", "success");
+    };
+    
+    ws.onmessage = function(event) {
+      var data = JSON.parse(event.data);
+      console.log("Received message:", data);
+      
+      if (data.type === "inventory_update") {
+        showNotification("Inventory update: " + data.data.message, "info");
+      } else if (data.type === "order_status") {
+        showNotification("Order update: " + data.data.message, "info");
+      } else if (data.type === "welcome") {
+        console.log(data.message);
+      } else if (data.type === "echo") {
+        console.log("Echo: " + data.message);
+      }
+    };
+    
+    ws.onclose = function(event) {
+      console.log("WebSocket connection closed");
+      showNotification("Real-time notifications disconnected", "warning");
+    };
+    
+    ws.onerror = function(error) {
+      console.log("WebSocket error:", error);
+      showNotification("Real-time notifications error", "danger");
+    };
+    
+    // Function to show notifications
+    function showNotification(message, type) {
+      var alertClass = "alert-" + type;
+      var notificationHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+        message +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>' +
+        '</div>';
+      
+      $("#realtime-notifications").html(notificationHtml);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        $("#realtime-notifications").html("");
+      }, 5000);
+    }
+    
+    // Load cart items
+    loadCartItems();
+    
+    // Load total no.of items added in the cart and display in the navbar
+    load_cart_item_number();
+    load_wishlist_item_number();
+
+    // Change the item quantity
+    $(document).on('change', ".itemQty", function() {
+      var $el = $(this).closest('tr');
+      var pid = $el.find(".pid").val();
+      var pprice = $el.find(".pprice").val();
+      var qty = $el.find(".itemQty").val();
+      
+      $.ajax({
+        url: '../api/cart/update',
+        method: 'post',
+        data: {
+          qty: qty,
+          pid: pid,
+          pprice: pprice
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            loadCartItems();
+          } else {
+            alert("Error updating cart: " + response.message);
+          }
+        },
+        error: function(xhr, status, error) {
+          alert("Error updating cart: " + error);
+        }
+      });
+    });
+
+    // Remove single items from cart
+    $(document).on('click', '.remove-item', function(e) {
+      e.preventDefault();
+      var id = $(this).data('id');
+      
+      $.ajax({
+        url: '../api/cart/remove/' + id,
+        method: 'delete',
+        success: function(response) {
+          if (response.status === "success") {
+            loadCartItems();
+            load_cart_item_number();
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+        },
+        error: function(xhr, status, error) {
+          $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error removing item: ' + error + '</strong></div>');
+        }
+      });
+    });
+
+    // Clear all items from cart
+    $("#clear-cart").on('click', function(e) {
+      e.preventDefault();
+      
+      if (confirm('Are you sure want to clear your cart?')) {
+        $.ajax({
+          url: '../api/cart/clear',
+          method: 'delete',
+          success: function(response) {
+            if (response.status === "success") {
+              loadCartItems();
+              load_cart_item_number();
+              $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+            } else {
+              $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+            }
+          },
+          error: function(xhr, status, error) {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error clearing cart: ' + error + '</strong></div>');
+          }
+        });
+      }
+    });
+
+    function loadCartItems() {
+      $.ajax({
+        url: '../api/cart/items',
+        method: 'get',
+        success: function(response) {
+          var cartHtml = '';
+          var grandTotal = 0;
+          
+          if (response.items && response.items.length > 0) {
+            $.each(response.items, function(index, item) {
+              cartHtml += '<tr>' +
+                '<td>' + item.id + '</td>' +
+                '<input type="hidden" class="pid" value="' + item.id + '">' +
+                '<td><img src="' + item.productImage + '" width="50"></td>' +
+                '<td>' + item.productName + '</td>' +
+                '<td><i class="fas fa-rupee-sign"></i>&nbsp;&nbsp;' + parseFloat(item.productPrice).toFixed(2) + '</td>' +
+                '<input type="hidden" class="pprice" value="' + item.productPrice + '">' +
+                '<td><input type="number" class="form-control itemQty" value="' + item.qty + '" style="width:75px;" min="1"></td>' +
+                '<td><i class="fas fa-rupee-sign"></i>&nbsp;&nbsp;' + parseFloat(item.totalPrice).toFixed(2) + '</td>' +
+                '<td><a href="#" class="text-danger lead remove-item" data-id="' + item.id + '"><i class="fas fa-trash-alt"></i></a></td>' +
+                '</tr>';
+              grandTotal += parseFloat(item.totalPrice);
+            });
+            
+            cartHtml += '<tr>' +
+              '<td colspan="3"><a href="shopping.html" class="btn btn-success"><i class="fas fa-cart-plus"></i>&nbsp;&nbsp;Continue Shopping</a></td>' +
+              '<td colspan="2"><b>Grand Total</b></td>' +
+              '<td><b><i class="fas fa-rupee-sign"></i>&nbsp;&nbsp;' + grandTotal.toFixed(2) + '</b></td>' +
+              '<td><a href="checkout.html" class="btn btn-info ' + (grandTotal > 0 ? '' : 'disabled') + '"><i class="far fa-credit-card"></i>&nbsp;&nbsp;Checkout</a></td>' +
+              '</tr>';
+          } else {
+            cartHtml = '<tr><td colspan="7" class="text-center"><div class="alert alert-info">Your cart is empty.</div></td></tr>' +
+              '<tr>' +
+              '<td colspan="3"><a href="shopping.html" class="btn btn-success"><i class="fas fa-cart-plus"></i>&nbsp;&nbsp;Continue Shopping</a></td>' +
+              '<td colspan="2"><b>Grand Total</b></td>' +
+              '<td><b><i class="fas fa-rupee-sign"></i>&nbsp;&nbsp;0.00</b></td>' +
+              '<td><a href="checkout.html" class="btn btn-info disabled"><i class="far fa-credit-card"></i>&nbsp;&nbsp;Checkout</a></td>' +
+              '</tr>';
+          }
+          
+          $("#cart-items").html(cartHtml);
+        },
+        error: function(xhr, status, error) {
+          $("#cart-items").html('<tr><td colspan="7" class="text-center"><div class="alert alert-danger">Error loading cart items: ' + error + '</div></td></tr>');
+        }
+      });
+    }
+
+    function load_cart_item_number() {
+      $.ajax({
+        url: '../api/cart/count',
+        method: 'get',
+        success: function(response) {
+          $("#cart-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading cart count: " + error);
+        }
+      });
+    }
+    
+    function load_wishlist_item_number() {
+      $.ajax({
+        url: '../api/wishlist/count',
+        method: 'get',
+        success: function(response) {
+          $("#wishlist-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading wishlist count: " + error);
+        }
+      });
+    }
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="user_profile">User Profile - Farm2Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .profile-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .profile-image-container {
+            text-align: center;
+            padding: 30px 20px 20px;
+        }
+
+        .profile-image {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            margin: 0 auto;
+        }
+
+        .profile-info {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .profile-name {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .profile-email {
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 20px;
+            background: #f8f9fa;
+            border-top: 1px solid #eee;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #eee;
+        }
+
+        .nav-tabs .nav-link {
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-weight: 500;
+            color: #666;
+            padding: 15px 20px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tabs .nav-link.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: transparent;
+        }
+
+        .nav-tabs .nav-link:hover {
+            color: #667eea;
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .form-control {
+            border: 2px solid #e1e1e1;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 25px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .order-item, .transaction-item {
+            border: 1px solid #eee;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .order-item:hover, .transaction-item:hover {
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .order-header, .transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .order-id, .transaction-id {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .order-status, .transaction-status {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-delivered {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .order-details, .transaction-details {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .order-detail-item, .transaction-detail-item {
+            margin-bottom: 10px;
+            min-width: 150px;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .detail-value {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .language-selector {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .language-option {
+            padding: 8px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .language-option.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .language-option:hover {
+            border-color: #667eea;
+        }
+
+        .notification-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .notification-item input {
+            margin-right: 10px;
+        }
+
+        .language-selector-container {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .profile-stats {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .order-details, .transaction-details {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .tab-content {
+                padding: 20px 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Profile Header -->
+    <div class="profile-header">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h1 class="text-center" data-i18n="user_profile">User Profile</h1>
+                    <p class="text-center" data-i18n="manage_account">Manage your account settings and preferences</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Profile Sidebar -->
+            <div class="col-lg-4">
+                <div class="profile-card">
+                    <div class="profile-image-container">
+                        <img src="https://ui-avatars.com/api/?name=Priya+Sharma&size=150" alt="Profile" class="profile-image">
+                    </div>
+                    <div class="profile-info">
+                        <h3 class="profile-name" id="user-fullname">Priya Sharma</h3>
+                        <p class="profile-email" id="user-email">customer1@gmail.com</p>
+                        <p class="text-muted" data-i18n="customer_since">Customer since Jan 2023</p>
+                    </div>
+                    <div class="profile-stats">
+                        <div class="stat-item">
+                            <div class="stat-number" id="orders-count">12</div>
+                            <div class="stat-label" data-i18n="orders">Orders</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-number" id="total-spent">₹15,420</div>
+                            <div class="stat-label" data-i18n="spent">Spent</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div class="col-lg-8">
+                <div class="profile-card">
+                    <!-- Language Selector -->
+                    <div class="language-selector-container">
+                        <label data-i18n="preferred_language">Preferred Language</label>
+                        <div class="language-selector">
+                            <div class="language-option active" data-lang="en">English</div>
+                            <div class="language-option" data-lang="hi">हिंदी</div>
+                            <div class="language-option" data-lang="ta">தமிழ்</div>
+                            <div class="language-option" data-lang="ml">മലയാളം</div>
+                            <div class="language-option" data-lang="kn">ಕನ್ನಡ</div>
+                            <div class="language-option" data-lang="te">తెలుగు</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Navigation Tabs -->
+                    <ul class="nav nav-tabs" id="profileTabs" role="tablist">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="profile-tab" data-toggle="tab" href="#profile" role="tab">
+                                <i class="fas fa-user"></i> <span data-i18n="profile">Profile</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="orders-tab" data-toggle="tab" href="#orders" role="tab">
+                                <i class="fas fa-shopping-bag"></i> <span data-i18n="orders">Orders</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="transactions-tab" data-toggle="tab" href="#transactions" role="tab">
+                                <i class="fas fa-exchange-alt"></i> <span data-i18n="transactions">Transactions</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="settings-tab" data-toggle="tab" href="#settings" role="tab">
+                                <i class="fas fa-cog"></i> <span data-i18n="settings">Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content" id="profileTabContent">
+                        <!-- Profile Tab -->
+                        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                            <h4 class="mb-4" data-i18n="personal_information">Personal Information</h4>
+                            <form id="profile-form">
+                                <div class="form-row">
+                                    <div class="form-group col-md-6">
+                                        <label for="firstName" data-i18n="first_name">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" value="Priya">
+                                    </div>
+                                    <div class="form-group col-md-6">
+                                        <label for="lastName" data-i18n="last_name">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" value="Sharma">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="email" data-i18n="email">Email Address</label>
+                                    <input type="email" class="form-control" id="email" value="customer1@gmail.com" readonly>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="phone" data-i18n="phone">Phone Number</label>
+                                    <input type="tel" class="form-control" id="phone" value="+91-9876543212">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="address" data-i18n="address">Address</label>
+                                    <textarea class="form-control" id="address" rows="3">789 Market Street</textarea>
+                                </div>
+                                
+                                <div class="form-row">
+                                    <div class="form-group col-md-4">
+                                        <label for="city" data-i18n="city">City</label>
+                                        <input type="text" class="form-control" id="city" value="Vellore">
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label for="state" data-i18n="state">State</label>
+                                        <input type="text" class="form-control" id="state" value="Tamil Nadu">
+                                    </div>
+                                    <div class="form-group col-md-4">
+                                        <label for="zipCode" data-i18n="zip_code">ZIP Code</label>
+                                        <input type="text" class="form-control" id="zipCode" value="632014">
+                                    </div>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="country" data-i18n="country">Country</label>
+                                    <input type="text" class="form-control" id="country" value="India">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> <span data-i18n="save_changes">Save Changes</span>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Orders Tab -->
+                        <div class="tab-pane fade" id="orders" role="tabpanel">
+                            <h4 class="mb-4" data-i18n="order_history">Order History</h4>
+                            <div id="orders-list">
+                                <div class="order-item">
+                                    <div class="order-header">
+                                        <div class="order-id">Order #1001</div>
+                                        <div class="order-status status-delivered" data-i18n="delivered">Delivered</div>
+                                    </div>
+                                    <div class="order-details">
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="date">Date</div>
+                                            <div class="detail-value">May 15, 2023</div>
+                                        </div>
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="items">Items</div>
+                                            <div class="detail-value">Apple (2), Banana (1)</div>
+                                        </div>
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="total">Total</div>
+                                            <div class="detail-value">₹300.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-item">
+                                    <div class="order-header">
+                                        <div class="order-id">Order #1002</div>
+                                        <div class="order-status status-processing" data-i18n="processing">Processing</div>
+                                    </div>
+                                    <div class="order-details">
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="date">Date</div>
+                                            <div class="detail-value">May 10, 2023</div>
+                                        </div>
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="items">Items</div>
+                                            <div class="detail-value">Cabbage (3), Egg (10)</div>
+                                        </div>
+                                        <div class="order-detail-item">
+                                            <div class="detail-label" data-i18n="total">Total</div>
+                                            <div class="detail-value">₹1,300.00</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Transactions Tab -->
+                        <div class="tab-pane fade" id="transactions" role="tabpanel">
+                            <h4 class="mb-4" data-i18n="transaction_history">Transaction History</h4>
+                            <div id="transactions-list">
+                                <div class="transaction-item">
+                                    <div class="transaction-header">
+                                        <div class="transaction-id">Transaction #5001</div>
+                                        <div class="transaction-status status-delivered" data-i18n="completed">Completed</div>
+                                    </div>
+                                    <div class="transaction-details">
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="date">Date</div>
+                                            <div class="detail-value">May 15, 2023</div>
+                                        </div>
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="amount">Amount</div>
+                                            <div class="detail-value">₹300.00</div>
+                                        </div>
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="payment_method">Payment Method</div>
+                                            <div class="detail-value">Debit Card</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="transaction-item">
+                                    <div class="transaction-header">
+                                        <div class="transaction-id">Transaction #5002</div>
+                                        <div class="transaction-status status-delivered" data-i18n="completed">Completed</div>
+                                    </div>
+                                    <div class="transaction-details">
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="date">Date</div>
+                                            <div class="detail-value">May 10, 2023</div>
+                                        </div>
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="amount">Amount</div>
+                                            <div class="detail-value">₹1,300.00</div>
+                                        </div>
+                                        <div class="transaction-detail-item">
+                                            <div class="detail-label" data-i18n="payment_method">Payment Method</div>
+                                            <div class="detail-value">Cash on Delivery</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Settings Tab -->
+                        <div class="tab-pane fade" id="settings" role="tabpanel">
+                            <h4 class="mb-4" data-i18n="general_settings">General Settings</h4>
+                            
+                            <div class="form-group">
+                                <label data-i18n="preferred_language">Preferred Language</label>
+                                <div class="language-selector">
+                                    <div class="language-option active" data-lang="en">English</div>
+                                    <div class="language-option" data-lang="hi">हिंदी</div>
+                                    <div class="language-option" data-lang="ta">தமிழ்</div>
+                                    <div class="language-option" data-lang="ml">മലയാളം</div>
+                                    <div class="language-option" data-lang="kn">ಕನ್ನಡ</div>
+                                    <div class="language-option" data-lang="te">తెలుగు</div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label data-i18n="notifications">Notifications</label>
+                                <div class="notification-item">
+                                    <input type="checkbox" id="email-notifications" checked>
+                                    <label for="email-notifications" data-i18n="email_notifications">Email notifications for orders and updates</label>
+                                </div>
+                                <div class="notification-item">
+                                    <input type="checkbox" id="sms-notifications" checked>
+                                    <label for="sms-notifications" data-i18n="sms_notifications">SMS notifications for important updates</label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label data-i18n="privacy_settings">Privacy Settings</label>
+                                <div class="notification-item">
+                                    <input type="checkbox" id="profile-visibility">
+                                    <label for="profile-visibility" data-i18n="profile_visibility">Make my profile visible to other users</label>
+                                </div>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary" id="save-settings">
+                                <i class="fas fa-save"></i> <span data-i18n="save_settings">Save Settings</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize i18n service
+            window.i18nService.initialize();
+            
+            // Language selector functionality
+            $('.language-option').on('click', function() {
+                $('.language-option').removeClass('active');
+                $(this).addClass('active');
+                const selectedLang = $(this).data('lang');
+                window.i18nService.setLanguage(selectedLang);
+            });
+            
+            // Profile form submission
+            $('#profile-form').on('submit', function(e) {
+                e.preventDefault();
+                alert(window.i18nService.translate('profile_updated'));
+                // In a real application, you would send this to your backend
+            });
+            
+            // Settings save button
+            $('#save-settings').on('click', function() {
+                alert(window.i18nService.translate('settings_saved'));
+                // In a real application, you would send this to your backend
+            });
+        });
+    </script>
+</body>
+</html>

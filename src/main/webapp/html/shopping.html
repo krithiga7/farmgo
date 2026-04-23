@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Shopping - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+  <style>
+    .card-img-top {
+      height: 200px;
+      object-fit: cover;
+    }
+    .card-title, .card-text {
+      margin-bottom: 0;
+    }
+    .card-body {
+      padding: 1rem;
+    }
+    .card-footer {
+      padding: 0.5rem;
+    }
+    .btn-info {
+      background-color: #17a2b8;
+      border-color: #17a2b8;
+    }
+    /* New navbar styles */
+    .navbar {
+      box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    }
+    .navbar-brand {
+      font-weight: bold;
+      font-size: 1.5rem;
+    }
+    .navbar-brand i {
+      color: #17a2b8;
+    }
+    .nav-item {
+      margin-left: 10px;
+    }
+    .nav-link {
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+    }
+    .nav-link:hover {
+      color: #17a2b8 !important;
+    }
+    .nav-link i {
+      margin-right: 5px;
+    }
+    #cart-item {
+      position: relative;
+      top: -10px;
+      left: -5px;
+      font-size: 0.7rem;
+    }
+  </style>
+</head>
+
+<body>
+<!-- Optimized Navbar start -->
+<nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
+  <div class="container">
+    <a class="navbar-brand" href="index.html">
+      <i class="fas fa-home"></i> FARM TO HOME
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#"><i class="fas fa-th-list"></i> Categories</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="checkout.html"><i class="fas fa-money-check-alt"></i> Checkout</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="wishlist.html"><i class="fas fa-heart"></i> <span id="wishlist-item" class="badge badge-danger"></span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html">
+            <span class="position-relative">
+              <i class="fas fa-shopping-cart"></i>
+              <span id="cart-item" class="badge badge-pill badge-danger"></span>
+            </span>
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!-- Optimized Navbar end -->
+
+  <!-- Search and Filter Section -->
+  <div class="container my-4">
+    <div class="row">
+      <div class="col-md-8">
+        <div class="input-group">
+          <input type="text" class="form-control" id="searchInput" placeholder="Search products...">
+          <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="button" id="searchBtn">Search</button>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <select class="form-control" id="categoryFilter">
+          <option value="">All Categories</option>
+          <option value="fruits">Fruits</option>
+          <option value="vegetables">Vegetables</option>
+          <option value="dairy">Dairy</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Displaying Products Start -->
+  <div class="container my-4">
+    <div id="message"></div>
+    <div id="realtime-notifications" class="mb-3"></div>
+    <div class="row" id="products-container">
+      <!-- Products will be loaded here by JavaScript -->
+      <div class="col-12 text-center">
+        <div class="spinner-border" role="status">
+          <span class="sr-only">Loading...</span>
+        </div>
+        <p>Loading products...</p>
+      </div>
+    </div>
+  </div>
+  <!-- Displaying Products End -->
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Initialize WebSocket connection
+    var ws = new WebSocket("ws://localhost:8080/farmgo/notifications");
+    
+    ws.onopen = function(event) {
+      console.log("WebSocket connection opened");
+      showNotification("Connected to real-time notifications", "success");
+    };
+    
+    ws.onmessage = function(event) {
+      var data = JSON.parse(event.data);
+      console.log("Received message:", data);
+      
+      if (data.type === "inventory_update") {
+        showNotification("Inventory update: " + data.data.message, "info");
+        // Reload products to show updated inventory
+        loadProducts();
+      } else if (data.type === "order_status") {
+        showNotification("Order update: " + data.data.message, "info");
+      } else if (data.type === "welcome") {
+        console.log(data.message);
+      } else if (data.type === "echo") {
+        console.log("Echo: " + data.message);
+      }
+    };
+    
+    ws.onclose = function(event) {
+      console.log("WebSocket connection closed");
+      showNotification("Real-time notifications disconnected", "warning");
+    };
+    
+    ws.onerror = function(error) {
+      console.log("WebSocket error:", error);
+      showNotification("Real-time notifications error", "danger");
+    };
+    
+    // Function to show notifications
+    function showNotification(message, type) {
+      var alertClass = "alert-" + type;
+      var notificationHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+        message +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>' +
+        '</div>';
+      
+      $("#realtime-notifications").html(notificationHtml);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        $("#realtime-notifications").html("");
+      }, 5000);
+    }
+    
+    // Load products from the server
+    loadProducts();
+    
+    // Load total number of items added to the cart and display in the navbar
+    load_cart_item_number();
+    load_wishlist_item_number();
+    
+    // Search functionality
+    $("#searchBtn").click(function() {
+      var searchTerm = $("#searchInput").val().toLowerCase();
+      filterProducts(searchTerm);
+    });
+    
+    $("#searchInput").keypress(function(e) {
+      if (e.which == 13) { // Enter key
+        var searchTerm = $("#searchInput").val().toLowerCase();
+        filterProducts(searchTerm);
+      }
+    });
+    
+    // Category filter
+    $("#categoryFilter").change(function() {
+      var category = $(this).val();
+      filterByCategory(category);
+    });
+
+    // Send product details to the server
+    $(document).on("click", ".addItemBtn", function(e) {
+      e.preventDefault();
+      var $form = $(this).closest(".form-submit");
+      var pid = $form.find(".pid").val();
+      var pname = $form.find(".pname").val();
+      var pprice = $form.find(".pprice").val();
+      var pimage = $form.find(".pimage").val();
+      var pcode = $form.find(".pcode").val();
+      var pqty = $form.find(".pqty").val();
+
+      $.ajax({
+        url: '../api/cart/add',
+        method: 'post',
+        data: {
+          pid: pid,
+          pname: pname,
+          pprice: pprice,
+          pqty: pqty,
+          pimage: pimage,
+          pcode: pcode
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+          load_cart_item_number();
+        },
+        error: function(xhr, status, error) {
+          $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error: ' + error + '</strong></div>');
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+
+    function loadProducts() {
+      $.ajax({
+        url: '../api/products',
+        method: 'get',
+        success: function(response) {
+          var productsHtml = '';
+          window.allProducts = response.products; // Store for filtering
+          if (response.products && response.products.length > 0) {
+            $.each(response.products, function(index, product) {
+              productsHtml += '<div class="col-sm-6 col-md-4 col-lg-3 mb-4 product-item" data-name="' + product.productName.toLowerCase() + '">' +
+                '<div class="card border-secondary">' +
+                '<img src="' + product.productImage + '" class="card-img-top" alt="' + product.productName + '">' +
+                '<div class="card-body">' +
+                '<h5 class="card-title text-center text-info">' + product.productName + '</h5>' +
+                '<p class="card-text text-center text-danger"><i class="fas fa-rupee-sign"></i> ' + parseFloat(product.productPrice).toFixed(2) + '/-</p>' +
+                '<form action="" class="form-submit">' +
+                '<div class="form-row">' +
+                '<div class="col">' +
+                '<label for="quantity">Quantity:</label>' +
+                '<input type="number" id="quantity" class="form-control pqty" value="' + product.productQty + '" min="1" max="' + product.productQty + '">' +
+                '</div>' +
+                '</div>' +
+                '<input type="hidden" class="pid" value="' + product.id + '">' +
+                '<input type="hidden" class="pname" value="' + product.productName + '">' +
+                '<input type="hidden" class="pprice" value="' + product.productPrice + '">' +
+                '<input type="hidden" class="pimage" value="' + product.productImage + '">' +
+                '<input type="hidden" class="pcode" value="' + product.productCode + '">' +
+                '<button class="btn btn-info btn-block mt-2 addItemBtn" type="submit"><i class="fas fa-cart-plus"></i> Add to Cart</button>' +
+                '<button class="btn btn-outline-danger btn-block mt-2 addToWishlistBtn" type="button" data-id="' + product.id + '" data-name="' + product.productName + '" data-price="' + product.productPrice + '" data-image="' + product.productImage + '" data-code="' + product.productCode + '"><i class="fas fa-heart"></i> Add to Wishlist</button>' +
+                '</form>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            });
+          } else {
+            productsHtml = '<div class="col-12"><div class="alert alert-info">No products available at the moment.</div></div>';
+          }
+          $("#products-container").html(productsHtml);
+        },
+        error: function(xhr, status, error) {
+          $("#products-container").html('<div class="col-12"><div class="alert alert-danger">Error loading products: ' + error + '</div></div>');
+        }
+      });
+    }
+    
+    function filterProducts(searchTerm) {
+      $(".product-item").each(function() {
+        var productName = $(this).data("name");
+        if (productName.indexOf(searchTerm) !== -1 || searchTerm === "") {
+          $(this).show();
+        } else {
+          $(this).hide();
+        }
+      });
+    }
+    
+    function filterByCategory(category) {
+      // In a real application, you would filter by actual category
+      // For now, we'll just show all products
+      $(".product-item").show();
+    }
+
+    function load_cart_item_number() {
+      $.ajax({
+        url: '../api/cart/count',
+        method: 'get',
+        success: function(response) {
+          $("#cart-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading cart count: " + error);
+        }
+      });
+    }
+    
+    function load_wishlist_item_number() {
+      $.ajax({
+        url: '../api/wishlist/count',
+        method: 'get',
+        success: function(response) {
+          $("#wishlist-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading wishlist count: " + error);
+        }
+      });
+    }
+
+    // Add to wishlist functionality
+    $(document).on("click", ".addToWishlistBtn", function(e) {
+      e.preventDefault();
+      var productId = $(this).data('id');
+      var productName = $(this).data('name');
+      var productPrice = $(this).data('price');
+      var productImage = $(this).data('image');
+      var productCode = $(this).data('code');
+      
+      $.ajax({
+        url: '../api/wishlist/add',
+        method: 'post',
+        data: {
+          productId: productId,
+          productName: productName,
+          productPrice: productPrice,
+          productImage: productImage,
+          productCode: productCode
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+          load_wishlist_item_number();
+        },
+        error: function(xhr, status, error) {
+          if (xhr.status === 401) {
+            $("#message").html('<div class="alert alert-warning alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Please <a href="farmer-login.html">login</a> to add items to your wishlist.</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error: ' + error + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+  });
+  </script>
+</body>
+</html>

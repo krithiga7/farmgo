@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Profile - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .profile-card {
+      background: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+    .order-history {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html"><i class="fas fa-shopping-cart"></i> <span id="cart-item" class="badge badge-danger"></span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="profile.html">Profile</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row">
+      <div class="col-md-4">
+        <div class="profile-card text-center">
+          <div class="mb-3">
+            <i class="fas fa-user-circle fa-5x text-muted"></i>
+          </div>
+          <h3 id="userName">John Doe</h3>
+          <p id="userEmail" class="text-muted">john.doe@example.com</p>
+          <p class="text-muted">Customer since Jan 2023</p>
+          <button class="btn btn-outline-primary btn-block" data-toggle="modal" data-target="#editProfileModal">
+            <i class="fas fa-edit"></i> Edit Profile
+          </button>
+        </div>
+      </div>
+      
+      <div class="col-md-8">
+        <div class="order-history">
+          <h3><i class="fas fa-shopping-bag"></i> Order History</h3>
+          <div id="orderHistory">
+            <div class="text-center">
+              <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+              </div>
+              <p>Loading order history...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div class="modal fade" id="editProfileModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Edit Profile</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editProfileForm">
+            <div class="form-group">
+              <label for="editUsername">Username</label>
+              <input type="text" class="form-control" id="editUsername" value="John Doe">
+            </div>
+            <div class="form-group">
+              <label for="editEmail">Email</label>
+              <input type="email" class="form-control" id="editEmail" value="john.doe@example.com">
+            </div>
+            <div class="form-group">
+              <label for="editPhone">Phone</label>
+              <input type="tel" class="form-control" id="editPhone" placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+              <label for="editAddress">Address</label>
+              <textarea class="form-control" id="editAddress" rows="3" placeholder="Enter your address"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveProfileBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Load cart item count
+    load_cart_item_number();
+    
+    // Load order history
+    loadOrderHistory();
+    
+    // Save profile changes
+    $("#saveProfileBtn").click(function() {
+      // In a real application, you would send this to your backend
+      $("#editProfileModal").modal('hide');
+      alert("Profile updated successfully!");
+    });
+    
+    // Logout functionality
+    $("#logoutBtn").click(function(e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want to logout?")) {
+        // In a real application, you would send a request to your backend to destroy the session
+        alert("You have been logged out successfully!");
+        window.location.href = "index.html";
+      }
+    });
+
+    function loadOrderHistory() {
+      // In a real application, you would fetch this from your backend
+      var orderHtml = '<div class="alert alert-info">No orders found.</div>' +
+        '<div class="card mb-3">' +
+        '<div class="card-body">' +
+        '<h5 class="card-title">Order #12345 <span class="badge badge-success">Delivered</span></h5>' +
+        '<p class="card-text">Ordered on: Jan 15, 2023</p>' +
+        '<p class="card-text">Items: Apple (2), Banana (1), Cabbage (3)</p>' +
+        '<p class="card-text"><strong>Total: <i class="fas fa-rupee-sign"></i> 600.00</strong></p>' +
+        '</div>' +
+        '</div>' +
+        '<div class="card mb-3">' +
+        '<div class="card-body">' +
+        '<h5 class="card-title">Order #12344 <span class="badge badge-warning">Processing</span></h5>' +
+        '<p class="card-text">Ordered on: Jan 10, 2023</p>' +
+        '<p class="card-text">Items: Egg (10), Tomato (5)</p>' +
+        '<p class="card-text"><strong>Total: <i class="fas fa-rupee-sign"></i> 1500.00</strong></p>' +
+        '</div>' +
+        '</div>';
+      
+      $("#orderHistory").html(orderHtml);
+    }
+
+    function load_cart_item_number() {
+      $.ajax({
+        url: '../api/cart/count',
+        method: 'get',
+        success: function(response) {
+          $("#cart-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading cart count: " + error);
+        }
+      });
+    }
+  });
+  </script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Admin Dashboard - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .dashboard-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      text-align: center;
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+    }
+    .bg-primary-stat {
+      background: linear-gradient(45deg, #007bff, #0056b3);
+    }
+    .bg-success-stat {
+      background: linear-gradient(45deg, #28a745, #1e7e34);
+    }
+    .bg-warning-stat {
+      background: linear-gradient(45deg, #ffc107, #e0a800);
+    }
+    .bg-danger-stat {
+      background: linear-gradient(45deg, #dc3545, #c82333);
+    }
+    .notification-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .notification-item:last-child {
+      border-bottom: none;
+    }
+    .notification-item.new {
+      background-color: #e3f2fd;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME - ADMIN</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="#" id="logoutBtn">Logout</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container-fluid my-4">
+    <div id="realtime-notifications" class="mb-3"></div>
+    
+    <h2 class="mb-4">Admin Dashboard</h2>
+    
+    <!-- Stats Cards -->
+    <div class="row mb-4">
+      <div class="col-md-3">
+        <div class="stat-card bg-primary-stat">
+          <h3 id="total-orders">0</h3>
+          <p>Total Orders</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-success-stat">
+          <h3 id="total-products">0</h3>
+          <p>Products</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-warning-stat">
+          <h3 id="low-stock">0</h3>
+          <p>Low Stock Items</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card bg-danger-stat">
+          <h3 id="pending-orders">0</h3>
+          <p>Pending Orders</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="row">
+      <!-- Recent Orders -->
+      <div class="col-md-8">
+        <div class="dashboard-card">
+          <h4><i class="fas fa-shopping-cart"></i> Recent Orders</h4>
+          <div class="table-responsive">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Customer</th>
+                  <th>Items</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-table">
+                <tr>
+                  <td colspan="6" class="text-center">Loading orders...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Real-time Notifications -->
+      <div class="col-md-4">
+        <div class="dashboard-card">
+          <h4><i class="fas fa-bell"></i> Real-time Notifications</h4>
+          <div id="notifications-list" style="max-height: 400px; overflow-y: auto;">
+            <div class="text-center">Waiting for notifications...</div>
+          </div>
+        </div>
+        
+        <!-- Inventory Status -->
+        <div class="dashboard-card mt-4">
+          <h4><i class="fas fa-boxes"></i> Inventory Status</h4>
+          <div id="inventory-status">
+            <div class="text-center">Loading inventory...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Order Status Modal -->
+  <div class="modal fade" id="updateOrderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Update Order Status</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="updateOrderForm">
+            <input type="hidden" id="orderId">
+            <div class="form-group">
+              <label for="orderStatus">Status</label>
+              <select class="form-control" id="orderStatus">
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary" id="saveStatusBtn">Save Changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Initialize WebSocket connection
+    var ws = new WebSocket("ws://localhost:8080/farmgo/notifications");
+    
+    ws.onopen = function(event) {
+      console.log("WebSocket connection opened");
+      showNotification("Connected to real-time admin dashboard", "success");
+      loadDashboardData();
+    };
+    
+    ws.onmessage = function(event) {
+      var data = JSON.parse(event.data);
+      console.log("Received message:", data);
+      
+      if (data.type === "inventory_update") {
+        showNotification("Inventory update: " + data.data.message, "info");
+        addNotificationToList("Inventory Update", data.data.message, "info");
+        loadDashboardData(); // Refresh dashboard data
+      } else if (data.type === "order_status") {
+        showNotification("Order update: " + data.data.message, "info");
+        addNotificationToList("Order Update", data.data.message, "success");
+        loadDashboardData(); // Refresh dashboard data
+      } else if (data.type === "welcome") {
+        console.log(data.message);
+      } else if (data.type === "echo") {
+        console.log("Echo: " + data.message);
+      }
+    };
+    
+    ws.onclose = function(event) {
+      console.log("WebSocket connection closed");
+      showNotification("Real-time notifications disconnected", "warning");
+    };
+    
+    ws.onerror = function(error) {
+      console.log("WebSocket error:", error);
+      showNotification("Real-time notifications error", "danger");
+    };
+    
+    // Function to show notifications
+    function showNotification(message, type) {
+      var alertClass = "alert-" + type;
+      var notificationHtml = '<div class="alert ' + alertClass + ' alert-dismissible fade show" role="alert">' +
+        message +
+        '<button type="button" class="close" data-dismiss="alert" aria-label="Close">' +
+        '<span aria-hidden="true">&times;</span>' +
+        '</button>' +
+        '</div>';
+      
+      $("#realtime-notifications").html(notificationHtml);
+      
+      // Auto-hide after 5 seconds
+      setTimeout(function() {
+        $("#realtime-notifications").html("");
+      }, 5000);
+    }
+    
+    // Function to add notification to list
+    function addNotificationToList(title, message, type) {
+      var iconClass = "";
+      if (type === "info") iconClass = "fa-info-circle text-info";
+      else if (type === "success") iconClass = "fa-check-circle text-success";
+      else if (type === "warning") iconClass = "fa-exclamation-circle text-warning";
+      else if (type === "danger") iconClass = "fa-times-circle text-danger";
+      
+      var notificationHtml = '<div class="notification-item new">' +
+        '<div class="d-flex">' +
+        '<div class="mr-3"><i class="fas ' + iconClass + ' fa-2x"></i></div>' +
+        '<div>' +
+        '<h6>' + title + '</h6>' +
+        '<p class="mb-1">' + message + '</p>' +
+        '<small class="text-muted">' + new Date().toLocaleTimeString() + '</small>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+      
+      $("#notifications-list").prepend(notificationHtml);
+      
+      // Remove 'new' class after 5 seconds
+      setTimeout(function() {
+        $(".notification-item.new").removeClass("new");
+      }, 5000);
+    }
+    
+    // Load dashboard data
+    function loadDashboardData() {
+      // In a real application, you would fetch this data from your backend
+      // For now, we'll use sample data
+      
+      // Update stats
+      $("#total-orders").text("24");
+      $("#total-products").text("15");
+      $("#low-stock").text("3");
+      $("#pending-orders").text("7");
+      
+      // Update orders table
+      var ordersHtml = '<tr>' +
+        '<td>1001</td>' +
+        '<td>John Doe</td>' +
+        '<td>Apple (2), Banana (1)</td>' +
+        '<td><i class="fas fa-rupee-sign"></i> 300.00</td>' +
+        '<td><span class="badge badge-warning">Pending</span></td>' +
+        '<td><button class="btn btn-sm btn-primary update-order" data-id="1001">Update</button></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td>1002</td>' +
+        '<td>Jane Smith</td>' +
+        '<td>Cabbage (3), Egg (10)</td>' +
+        '<td><i class="fas fa-rupee-sign"></i> 1300.00</td>' +
+        '<td><span class="badge badge-info">Processing</span></td>' +
+        '<td><button class="btn btn-sm btn-primary update-order" data-id="1002">Update</button></td>' +
+        '</tr>' +
+        '<tr>' +
+        '<td>1003</td>' +
+        '<td>Bob Johnson</td>' +
+        '<td>Tomato (5), Potato (4)</td>' +
+        '<td><i class="fas fa-rupee-sign"></i> 900.00</td>' +
+        '<td><span class="badge badge-success">Shipped</span></td>' +
+        '<td><button class="btn btn-sm btn-primary update-order" data-id="1003">Update</button></td>' +
+        '</tr>';
+      
+      $("#orders-table").html(ordersHtml);
+      
+      // Update inventory status
+      var inventoryHtml = '<div class="progress mb-3">' +
+        '<div class="progress-bar bg-success" role="progressbar" style="width: 90%">Apple (5 items)</div>' +
+        '</div>' +
+        '<div class="progress mb-3">' +
+        '<div class="progress-bar bg-warning" role="progressbar" style="width: 30%">Banana (2 items - Low!)</div>' +
+        '</div>' +
+        '<div class="progress mb-3">' +
+        '<div class="progress-bar bg-success" role="progressbar" style="width: 70%">Cabbage (3 items)</div>' +
+        '</div>' +
+        '<div class="progress mb-3">' +
+        '<div class="progress-bar bg-danger" role="progressbar" style="width: 10%">Egg (1 item - Very Low!)</div>' +
+        '</div>';
+      
+      $("#inventory-status").html(inventoryHtml);
+    }
+    
+    // Update order status
+    $(document).on("click", ".update-order", function() {
+      var orderId = $(this).data("id");
+      $("#orderId").val(orderId);
+      $("#updateOrderModal").modal("show");
+    });
+    
+    $("#saveStatusBtn").click(function() {
+      var orderId = $("#orderId").val();
+      var status = $("#orderStatus").val();
+      
+      // In a real application, you would send this to your backend
+      showNotification("Order #" + orderId + " status updated to " + status, "success");
+      addNotificationToList("Order Update", "Order #" + orderId + " status updated to " + status, "success");
+      
+      $("#updateOrderModal").modal("hide");
+    });
+    
+    // Logout functionality
+    $("#logoutBtn").click(function(e) {
+      e.preventDefault();
+      if (confirm("Are you sure you want to logout?")) {
+        // In a real application, you would send a request to your backend to destroy the session
+        alert("You have been logged out successfully!");
+        window.location.href = "index.html";
+      }
+    });
+  });
+  </script>
+</body>
+</html>

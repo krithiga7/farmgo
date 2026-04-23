@@ -1,0 +1,47 @@
+# Build outputs
+target/
+*.war
+*.class
+*.jar
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+*.project
+
+# Maven
+apache-maven-3.8.1/
+apache-maven-3.8.1-bin.zip
+
+# Tomcat
+apache-tomcat-9.0.96/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Temporary files
+*.tmp
+*.log
+*.swp
+*.swo
+*~
+
+# Database files (if you want to keep credentials private)
+*.db
+
+# Compiled CSS (if using preprocessors)
+*.css.map
+
+# Node modules (if using any Node tools)
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local

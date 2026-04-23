@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title data-i18n="farmer_dashboard">Farmer Dashboard - Farm2Home</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/css/bootstrap.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+        }
+
+        .dashboard-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 0;
+            margin-bottom: 30px;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 30px;
+            height: 100%;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            margin-bottom: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 30px;
+        }
+
+        .bg-primary-stat {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .bg-success-stat {
+            background: linear-gradient(135deg, #28a745 0%, #1e7e34 100%);
+            color: white;
+        }
+
+        .bg-warning-stat {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+            color: white;
+        }
+
+        .bg-info-stat {
+            background: linear-gradient(135deg, #17a2b8 0%, #117a8b 100%);
+            color: white;
+        }
+
+        .stat-number {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-bottom: none;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .card-body {
+            padding: 25px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 126, 234, 0.05);
+        }
+
+        .product-image {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-instock {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-lowstock {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-outofstock {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .action-buttons .btn {
+            padding: 5px 10px;
+            margin: 0 2px;
+            font-size: 12px;
+        }
+
+        .chart-container {
+            height: 300px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #dc3545;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+            padding: 20px 0;
+            margin-bottom: 30px;
+        }
+
+        .sidebar .nav-link {
+            color: #333;
+            padding: 12px 20px;
+            border-radius: 0;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar .nav-link:hover, .sidebar .nav-link.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .sidebar .nav-link i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .language-selector {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .language-option {
+            padding: 8px 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            background: white;
+        }
+
+        .language-option.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .language-option:hover {
+            border-color: #667eea;
+        }
+
+        .language-selector-container {
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .stat-card {
+                margin-bottom: 20px;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1><i class="fas fa-seedling"></i> <span data-i18n="farmer_dashboard">Farmer Dashboard</span></h1>
+                    <p data-i18n="welcome_farmer">Welcome back, Rajesh Kumar! Manage your products and orders</p>
+                </div>
+                <div class="col-md-6 text-md-right">
+                    <div class="btn-group">
+                        <button class="btn btn-light">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-badge">3</span>
+                        </button>
+                        <button class="btn btn-light dropdown-toggle" data-toggle="dropdown">
+                            <i class="fas fa-user"></i> Rajesh Kumar
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right">
+                            <a class="dropdown-item" href="farmer-profile.html"><i class="fas fa-user-circle"></i> <span data-i18n="my_profile">My Profile</span></a>
+                            <a class="dropdown-item" href="#"><i class="fas fa-cog"></i> <span data-i18n="settings">Settings</span></a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="farmer-login-professional.html"><i class="fas fa-sign-out-alt"></i> <span data-i18n="logout">Logout</span></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Language Selector -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="language-selector-container">
+                        <label data-i18n="preferred_language">Preferred Language</label>
+                        <div class="language-selector">
+                            <div class="language-option active" data-lang="en">English</div>
+                            <div class="language-option" data-lang="hi">हिंदी</div>
+                            <div class="language-option" data-lang="ta">தமிழ்</div>
+                            <div class="language-option" data-lang="ml">മലയാളം</div>
+                            <div class="language-option" data-lang="kn">ಕನ್ನಡ</div>
+                            <div class="language-option" data-lang="te">తెలుగు</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-3">
+                <div class="sidebar">
+                    <div class="nav flex-column">
+                        <a class="nav-link active" href="#">
+                            <i class="fas fa-tachometer-alt"></i> <span data-i18n="dashboard">Dashboard</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-box"></i> <span data-i18n="my_products">My Products</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-shopping-cart"></i> <span data-i18n="orders">Orders</span>
+                            <span class="badge badge-danger float-right">5</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-line"></i> <span data-i18n="analytics">Analytics</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-truck"></i> <span data-i18n="delivery_updates">Delivery Updates</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-comments"></i> <span data-i18n="customer_messages">Customer Messages</span>
+                        </a>
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog"></i> <span data-i18n="settings">Settings</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-lg-9">
+                <!-- Stats Cards -->
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-primary-stat">
+                                <i class="fas fa-box"></i>
+                            </div>
+                            <div class="stat-number">24</div>
+                            <div class="stat-label" data-i18n="total_products">Total Products</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-success-stat">
+                                <i class="fas fa-shopping-cart"></i>
+                            </div>
+                            <div class="stat-number">128</div>
+                            <div class="stat-label" data-i18n="total_orders">Total Orders</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-warning-stat">
+                                <i class="fas fa-rupee-sign"></i>
+                            </div>
+                            <div class="stat-number">₹42,560</div>
+                            <div class="stat-label" data-i18n="total_revenue">Total Revenue</div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <div class="stat-icon bg-info-stat">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-number">4.8</div>
+                            <div class="stat-label" data-i18n="avg_rating">Avg. Rating</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Products and Orders -->
+                <div class="row">
+                    <!-- My Products -->
+                    <div class="col-lg-8">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span><i class="fas fa-box"></i> <span data-i18n="my_products">My Products</span></span>
+                                <button class="btn btn-light" data-toggle="modal" data-target="#addProductModal">
+                                    <i class="fas fa-plus"></i> <span data-i18n="add_product">Add Product</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="product">Product</th>
+                                                <th data-i18n="price">Price</th>
+                                                <th data-i18n="stock">Stock</th>
+                                                <th data-i18n="status">Status</th>
+                                                <th data-i18n="actions">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <img src="../image/apple.jpg" class="product-image mr-2">
+                                                    Apple
+                                                </td>
+                                                <td>₹100.00</td>
+                                                <td>5 kg</td>
+                                                <td><span class="status-badge status-instock" data-i18n="in_stock">In Stock</span></td>
+                                                <td class="action-buttons">
+                                                    <button class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <img src="../image/banana.jpg" class="product-image mr-2">
+                                                    Banana
+                                                </td>
+                                                <td>₹100.00</td>
+                                                <td>2 kg</td>
+                                                <td><span class="status-badge status-lowstock" data-i18n="low_stock">Low Stock</span></td>
+                                                <td class="action-buttons">
+                                                    <button class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <img src="../image/cabbage.jpeg" class="product-image mr-2">
+                                                    Cabbage
+                                                </td>
+                                                <td>₹100.00</td>
+                                                <td>3 kg</td>
+                                                <td><span class="status-badge status-instock" data-i18n="in_stock">In Stock</span></td>
+                                                <td class="action-buttons">
+                                                    <button class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <img src="../image/egg.jpeg" class="product-image mr-2">
+                                                    Egg
+                                                </td>
+                                                <td>₹100.00</td>
+                                                <td>1 tray</td>
+                                                <td><span class="status-badge status-instock" data-i18n="in_stock">In Stock</span></td>
+                                                <td class="action-buttons">
+                                                    <button class="btn btn-sm btn-primary"><i class="fas fa-edit"></i></button>
+                                                    <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Orders -->
+                    <div class="col-lg-4">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span><i class="fas fa-shopping-cart"></i> <span data-i18n="recent_orders">Recent Orders</span></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="order">Order</th>
+                                                <th data-i18n="customer">Customer</th>
+                                                <th data-i18n="amount">Amount</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>#1001</td>
+                                                <td>John Doe</td>
+                                                <td>₹300.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1002</td>
+                                                <td>Jane Smith</td>
+                                                <td>₹1,300.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1003</td>
+                                                <td>Bob Johnson</td>
+                                                <td>₹900.00</td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1004</td>
+                                                <td>Alice Brown</td>
+                                                <td>₹600.00</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Price Negotiation Requests -->
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span><i class="fas fa-handshake"></i> <span data-i18n="price_negotiations">Price Negotiations</span></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info">
+                                    <strong data-i18n="new_request">New Request:</strong> <span data-i18n="negotiation_request">Customer wants to negotiate price for Apples (2kg)</span>
+                                    <div class="mt-2">
+                                        <button class="btn btn-sm btn-success mr-2" data-i18n="accept">Accept</button>
+                                        <button class="btn btn-sm btn-danger mr-2" data-i18n="reject">Reject</button>
+                                        <button class="btn btn-sm btn-primary" data-i18n="discuss">Discuss</button>
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning">
+                                    <strong data-i18n="pending">Pending:</strong> <span data-i18n="pending_negotiations">3 negotiation requests awaiting your response</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Delivery Updates -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="dashboard-card">
+                            <div class="card-header">
+                                <span><i class="fas fa-truck"></i> <span data-i18n="delivery_updates">Delivery Updates</span></span>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th data-i18n="order_id">Order ID</th>
+                                                <th data-i18n="customer">Customer</th>
+                                                <th data-i18n="items">Items</th>
+                                                <th data-i18n="status">Status</th>
+                                                <th data-i18n="delivery_date">Delivery Date</th>
+                                                <th data-i18n="actions">Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>#1001</td>
+                                                <td>John Doe</td>
+                                                <td>Apple (2kg), Banana (1kg)</td>
+                                                <td><span class="status-badge status-instock" data-i18n="delivered">Delivered</span></td>
+                                                <td>May 15, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" data-i18n="update">Update</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1002</td>
+                                                <td>Jane Smith</td>
+                                                <td>Cabbage (3kg), Egg (10)</td>
+                                                <td><span class="status-badge status-warning" data-i18n="in_transit">In Transit</span></td>
+                                                <td>May 20, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" data-i18n="update">Update</button>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>#1003</td>
+                                                <td>Bob Johnson</td>
+                                                <td>Tomato (5kg), Potato (4kg)</td>
+                                                <td><span class="status-badge status-lowstock" data-i18n="processing">Processing</span></td>
+                                                <td>May 18, 2023</td>
+                                                <td>
+                                                    <button class="btn btn-sm btn-primary" data-i18n="update">Update</button>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-plus-circle"></i> <span data-i18n="add_new_product">Add New Product</span></h5>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="productName" data-i18n="product_name">Product Name</label>
+                                <input type="text" class="form-control" id="productName" placeholder="Enter product name">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="productCode" data-i18n="product_code">Product Code</label>
+                                <input type="text" class="form-control" id="productCode" placeholder="Enter product code">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-md-6">
+                                <label for="productPrice" data-i18n="price">Price (₹)</label>
+                                <input type="number" class="form-control" id="productPrice" placeholder="Enter price">
+                            </div>
+                            <div class="form-group col-md-6">
+                                <label for="productQuantity" data-i18n="available_quantity">Available Quantity</label>
+                                <input type="number" class="form-control" id="productQuantity" placeholder="Enter quantity">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productImage" data-i18n="product_image">Product Image</label>
+                            <input type="file" class="form-control-file" id="productImage">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="productDescription" data-i18n="description">Description</label>
+                            <textarea class="form-control" id="productDescription" rows="3" placeholder="Enter product description"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal" data-i18n="close">Close</button>
+                    <button type="button" class="btn btn-primary" data-i18n="add_product">Add Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.0/js/bootstrap.min.js"></script>
+    <script src="../js/i18n.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Initialize i18n service
+            window.i18nService.initialize();
+            
+            // Language selector functionality
+            $('.language-option').on('click', function() {
+                $('.language-option').removeClass('active');
+                $(this).addClass('active');
+                const selectedLang = $(this).data('lang');
+                window.i18nService.setLanguage(selectedLang);
+            });
+            
+            // Initialize tooltips
+            $('[data-toggle="tooltip"]').tooltip();
+            
+            // Add product form submission
+            $('.modal-footer .btn-primary').on('click', function() {
+                alert(window.i18nService.translate('product_added'));
+                $('#addProductModal').modal('hide');
+                // In a real application, you would send this to your backend
+            });
+        });
+    </script>
+</body>
+</html>

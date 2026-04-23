@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Product Details - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+  <style>
+    .product-image {
+      max-height: 400px;
+      object-fit: cover;
+    }
+    .related-products .card {
+      transition: transform 0.3s;
+    }
+    .related-products .card:hover {
+      transform: translateY(-5px);
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html"><i class="fas fa-shopping-cart"></i> <span id="cart-item" class="badge badge-danger"></span></a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container my-4">
+    <div id="message"></div>
+    
+    <div class="row">
+      <div class="col-md-6">
+        <img src="../image/apple.jpg" class="img-fluid product-image" alt="Product Image" id="productImage">
+      </div>
+      <div class="col-md-6">
+        <h2 id="productName">Apple</h2>
+        <p class="text-muted">Fresh organic apples from local farms</p>
+        <h3 class="text-danger"><i class="fas fa-rupee-sign"></i> <span id="productPrice">100.00</span></h3>
+        
+        <div class="mt-4">
+          <h5>Product Description</h5>
+          <p id="productDescription">Fresh and juicy apples sourced directly from local farmers. These organic apples are rich in fiber and vitamin C, making them a healthy snack option for the whole family.</p>
+        </div>
+        
+        <div class="mt-4">
+          <h5>Availability</h5>
+          <p>In Stock: <span id="productQty">5</span> items available</p>
+        </div>
+        
+        <div class="mt-4">
+          <div class="form-row">
+            <div class="col-md-4">
+              <label for="quantity">Quantity:</label>
+              <input type="number" id="quantity" class="form-control" value="1" min="1" max="5">
+            </div>
+          </div>
+          
+          <input type="hidden" id="productId" value="1">
+          <input type="hidden" id="productCode" value="APL001">
+          
+          <button class="btn btn-success btn-lg mt-3" id="addToCartBtn">
+            <i class="fas fa-cart-plus"></i> Add to Cart
+          </button>
+          <button class="btn btn-outline-danger btn-lg mt-3 ml-2" id="addToWishlistBtn">
+            <i class="fas fa-heart"></i> Add to Wishlist
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Related Products -->
+    <div class="related-products mt-5">
+      <h3>Related Products</h3>
+      <div class="row" id="relatedProducts">
+        <div class="col-12 text-center">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+          <p>Loading related products...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Load cart item count
+    load_cart_item_number();
+    
+    // Load related products
+    loadRelatedProducts();
+    
+    // Add to cart functionality
+    $("#addToCartBtn").click(function() {
+      var pid = $("#productId").val();
+      var pname = $("#productName").text();
+      var pprice = $("#productPrice").text();
+      var pimage = $("#productImage").attr('src');
+      var pcode = $("#productCode").val();
+      var pqty = $("#quantity").val();
+      
+      $.ajax({
+        url: '../api/cart/add',
+        method: 'post',
+        data: {
+          pid: pid,
+          pname: pname,
+          pprice: pprice,
+          pqty: pqty,
+          pimage: pimage,
+          pcode: pcode
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+          load_cart_item_number();
+        },
+        error: function(xhr, status, error) {
+          $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error: ' + error + '</strong></div>');
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+    
+    // Add to wishlist functionality
+    $("#addToWishlistBtn").click(function() {
+      var productId = $("#productId").val();
+      var productName = $("#productName").text();
+      var productPrice = $("#productPrice").text();
+      var productImage = $("#productImage").attr('src');
+      var productCode = $("#productCode").val();
+      
+      $.ajax({
+        url: '../api/wishlist/add',
+        method: 'post',
+        data: {
+          productId: productId,
+          productName: productName,
+          productPrice: productPrice,
+          productImage: productImage,
+          productCode: productCode
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+          load_wishlist_item_number();
+        },
+        error: function(xhr, status, error) {
+          if (xhr.status === 401) {
+            $("#message").html('<div class="alert alert-warning alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Please <a href="farmer-login.html">login</a> to add items to your wishlist.</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error: ' + error + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+
+    function loadRelatedProducts() {
+      // In a real application, you would fetch related products from your backend
+      var relatedHtml = '<div class="col-md-4 mb-4">' +
+        '<div class="card">' +
+        '<img src="../image/banana.jpg" class="card-img-top" alt="Banana">' +
+        '<div class="card-body">' +
+        '<h5 class="card-title">Banana</h5>' +
+        '<p class="card-text"><i class="fas fa-rupee-sign"></i> 100.00</p>' +
+        '<a href="product-details.html" class="btn btn-primary">View Details</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="col-md-4 mb-4">' +
+        '<div class="card">' +
+        '<img src="../image/cabbage.jpeg" class="card-img-top" alt="Cabbage">' +
+        '<div class="card-body">' +
+        '<h5 class="card-title">Cabbage</h5>' +
+        '<p class="card-text"><i class="fas fa-rupee-sign"></i> 100.00</p>' +
+        '<a href="product-details.html" class="btn btn-primary">View Details</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        '<div class="col-md-4 mb-4">' +
+        '<div class="card">' +
+        '<img src="../image/tomato.jpeg" class="card-img-top" alt="Tomato">' +
+        '<div class="card-body">' +
+        '<h5 class="card-title">Tomato</h5>' +
+        '<p class="card-text"><i class="fas fa-rupee-sign"></i> 100.00</p>' +
+        '<a href="product-details.html" class="btn btn-primary">View Details</a>' +
+        '</div>' +
+        '</div>' +
+        '</div>';
+      
+      $("#relatedProducts").html(relatedHtml);
+    }
+
+    function load_cart_item_number() {
+      $.ajax({
+        url: '../api/cart/count',
+        method: 'get',
+        success: function(response) {
+          $("#cart-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading cart count: " + error);
+        }
+      });
+    }
+  });
+  </script>
+</body>
+</html>

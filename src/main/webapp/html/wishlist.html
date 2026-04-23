@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Wishlist - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="cart.html"><i class="fas fa-shopping-cart"></i> <span id="cart-item" class="badge badge-danger"></span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="wishlist.html"><i class="fas fa-heart"></i> <span id="wishlist-item" class="badge badge-danger"></span></a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-10">
+        <div id="message"></div>
+        <h3 class="text-center text-info my-4">Your Wishlist</h3>
+        <div class="row" id="wishlist-items">
+          <!-- Wishlist items will be loaded here -->
+          <div class="col-12 text-center">
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Loading...</span>
+            </div>
+            <p>Loading wishlist items...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    // Load wishlist items
+    loadWishlistItems();
+    
+    // Load cart and wishlist item counts
+    load_cart_item_number();
+    load_wishlist_item_number();
+
+    // Remove item from wishlist
+    $(document).on('click', '.remove-item', function(e) {
+      e.preventDefault();
+      var productId = $(this).data('id');
+      
+      $.ajax({
+        url: '../api/wishlist/remove',
+        method: 'post',
+        data: {
+          productId: productId
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            loadWishlistItems();
+            load_wishlist_item_number();
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+        },
+        error: function(xhr, status, error) {
+          $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error removing item: ' + error + '</strong></div>');
+        }
+      });
+    });
+
+    // Add item to cart from wishlist
+    $(document).on('click', '.add-to-cart', function(e) {
+      e.preventDefault();
+      var $card = $(this).closest('.wishlist-card');
+      var productId = $card.data('id');
+      var productName = $card.data('name');
+      var productPrice = $card.data('price');
+      var productImage = $card.data('image');
+      var productCode = $card.data('code');
+      
+      $.ajax({
+        url: '../api/cart/add',
+        method: 'post',
+        data: {
+          pid: productId,
+          pname: productName,
+          pprice: productPrice,
+          pqty: 1,
+          pimage: productImage,
+          pcode: productCode
+        },
+        success: function(response) {
+          if (response.status === "success") {
+            $("#message").html('<div class="alert alert-success alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+            load_cart_item_number();
+          } else {
+            $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>' + response.message + '</strong></div>');
+          }
+          window.scrollTo(0, 0);
+        },
+        error: function(xhr, status, error) {
+          $("#message").html('<div class="alert alert-danger alert-dismissible mt-2"><button type="button" class="close" data-dismiss="alert">&times;</button><strong>Error: ' + error + '</strong></div>');
+          window.scrollTo(0, 0);
+        }
+      });
+    });
+
+    function loadWishlistItems() {
+      $.ajax({
+        url: '../api/wishlist/items',
+        method: 'get',
+        success: function(response) {
+          var wishlistHtml = '';
+          
+          if (response.items && response.items.length > 0) {
+            $.each(response.items, function(index, item) {
+              wishlistHtml += '<div class="col-md-4 mb-4">' +
+                '<div class="card wishlist-card" data-id="' + item.productId + '" data-name="' + item.productName + '" data-price="' + item.productPrice + '" data-image="' + item.productImage + '" data-code="' + item.productCode + '">' +
+                '<img src="' + item.productImage + '" class="card-img-top" alt="' + item.productName + '" style="height: 200px; object-fit: cover;">' +
+                '<div class="card-body">' +
+                '<h5 class="card-title">' + item.productName + '</h5>' +
+                '<p class="card-text"><strong><i class="fas fa-rupee-sign"></i> ' + parseFloat(item.productPrice).toFixed(2) + '</strong></p>' +
+                '<button class="btn btn-success add-to-cart"><i class="fas fa-cart-plus"></i> Add to Cart</button> ' +
+                '<button class="btn btn-outline-danger remove-item" data-id="' + item.productId + '"><i class="fas fa-trash"></i> Remove</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+            });
+          } else {
+            wishlistHtml = '<div class="col-12"><div class="alert alert-info text-center">Your wishlist is empty. <a href="shopping.html">Start shopping</a> to add items to your wishlist.</div></div>';
+          }
+          
+          $("#wishlist-items").html(wishlistHtml);
+        },
+        error: function(xhr, status, error) {
+          if (xhr.status === 401) {
+            $("#wishlist-items").html('<div class="col-12"><div class="alert alert-warning text-center">Please <a href="farmer-login.html">login</a> to view your wishlist.</div></div>');
+          } else {
+            $("#wishlist-items").html('<div class="col-12"><div class="alert alert-danger">Error loading wishlist items: ' + error + '</div></div>');
+          }
+        }
+      });
+    }
+
+    function load_cart_item_number() {
+      $.ajax({
+        url: '../api/cart/count',
+        method: 'get',
+        success: function(response) {
+          $("#cart-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading cart count: " + error);
+        }
+      });
+    }
+    
+    function load_wishlist_item_number() {
+      $.ajax({
+        url: '../api/wishlist/count',
+        method: 'get',
+        success: function(response) {
+          $("#wishlist-item").html(response.count);
+        },
+        error: function(xhr, status, error) {
+          console.log("Error loading wishlist count: " + error);
+        }
+      });
+    }
+  });
+  </script>
+</body>
+</html>

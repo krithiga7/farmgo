@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="author" content="FarmGo Team">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>Customer Support Chat - Farm2Home</title>
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.min.css' />
+  <link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css' />
+  <style>
+    body {
+      background: #f8f9fa;
+    }
+    .chat-container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+    .chat-header {
+      background: #007bff;
+      color: white;
+      padding: 15px;
+    }
+    .chat-messages {
+      height: 400px;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f1f1f1;
+    }
+    .message {
+      margin-bottom: 15px;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 80%;
+    }
+    .message.sent {
+      background: #007bff;
+      color: white;
+      margin-left: auto;
+    }
+    .message.received {
+      background: #e9ecef;
+      color: #333;
+      margin-right: auto;
+    }
+    .chat-input {
+      padding: 15px;
+      background: #fff;
+      border-top: 1px solid #eee;
+    }
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 5px;
+    }
+    .status-connected {
+      background: #28a745;
+    }
+    .status-disconnected {
+      background: #dc3545;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar navbar-expand-md bg-dark navbar-dark">
+    <!-- Brand -->
+    <a class="navbar-brand" href="index.html"><i class="fas fa-home"></i>&nbsp;&nbsp;FARM TO HOME</a>
+    <!-- Toggler/collapsibe Button -->
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#collapsibleNavbar">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse" id="collapsibleNavbar">
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" href="index.html">Home</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="shopping.html">Products</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="chat.html">Support Chat</a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="chat-container">
+      <div class="chat-header">
+        <h4><i class="fas fa-comments"></i> Customer Support Chat</h4>
+        <div>
+          <span class="status-indicator" id="connection-status"></span>
+          <span id="status-text">Connecting...</span>
+        </div>
+      </div>
+      
+      <div class="chat-messages" id="chat-messages">
+        <div class="text-center text-muted">
+          <div class="spinner-border" role="status">
+            <span class="sr-only">Connecting...</span>
+          </div>
+          <p>Connecting to customer support...</p>
+        </div>
+      </div>
+      
+      <div class="chat-input">
+        <div class="input-group">
+          <input type="text" class="form-control" id="message-input" placeholder="Type your message here..." disabled>
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="button" id="send-button" disabled>
+              <i class="fas fa-paper-plane"></i> Send
+            </button>
+          </div>
+        </div>
+        <small class="form-text text-muted mt-2">
+          Please be respectful and patient. A customer support representative will respond as soon as possible.
+        </small>
+      </div>
+    </div>
+  </div>
+
+  <!-- Username Modal -->
+  <div class="modal fade" id="usernameModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Join Chat</h5>
+          <button type="button" class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="usernameForm">
+            <div class="form-group">
+              <label for="username">Your Name</label>
+              <input type="text" class="form-control" id="username" placeholder="Enter your name" required>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="joinChatBtn">Join Chat</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/js/bootstrap.min.js'></script>
+
+  <script type="text/javascript">
+  $(document).ready(function() {
+    var ws = null;
+    var username = null;
+    
+    // Show username modal when page loads
+    $("#usernameModal").modal({
+      backdrop: 'static',
+      keyboard: false
+    });
+    
+    // Join chat with username
+    $("#joinChatBtn").click(function() {
+      username = $("#username").val().trim();
+      if (username) {
+        $("#usernameModal").modal('hide');
+        connectToChat();
+      } else {
+        alert("Please enter your name");
+      }
+    });
+    
+    // Connect to WebSocket chat
+    function connectToChat() {
+      ws = new WebSocket("ws://localhost:8080/farmgo/chat/" + encodeURIComponent(username));
+      
+      ws.onopen = function(event) {
+        console.log("Chat WebSocket connection opened");
+        updateConnectionStatus("Connected", "connected");
+        addMessage("System", "You have joined the chat as " + username, "system");
+        $("#message-input").prop("disabled", false);
+        $("#send-button").prop("disabled", false);
+        $("#message-input").focus();
+      };
+      
+      ws.onmessage = function(event) {
+        var message = event.data;
+        console.log("Received message:", message);
+        
+        // Parse message to determine sender
+        if (message.startsWith("[")) {
+          // User message: [username]: message
+          var parts = message.split("]: ");
+          if (parts.length >= 2) {
+            var sender = parts[0].substring(1); // Remove the opening bracket
+            var content = parts[1];
+            addMessage(sender, content, sender === username ? "sent" : "received");
+          } else {
+            addMessage("System", message, "system");
+          }
+        } else {
+          // System message
+          addMessage("System", message, "system");
+        }
+      };
+      
+      ws.onclose = function(event) {
+        console.log("Chat WebSocket connection closed");
+        updateConnectionStatus("Disconnected", "disconnected");
+        addMessage("System", "You have been disconnected from the chat", "system");
+        $("#message-input").prop("disabled", true);
+        $("#send-button").prop("disabled", true);
+      };
+      
+      ws.onerror = function(error) {
+        console.log("Chat WebSocket error:", error);
+        updateConnectionStatus("Error", "disconnected");
+        addMessage("System", "Connection error occurred", "system");
+      };
+    }
+    
+    // Update connection status indicator
+    function updateConnectionStatus(text, status) {
+      $("#status-text").text(text);
+      $("#connection-status").removeClass("status-connected status-disconnected")
+                           .addClass("status-" + status);
+    }
+    
+    // Add message to chat
+    function addMessage(sender, content, type) {
+      var messageClass = "message " + type;
+      var timestamp = new Date().toLocaleTimeString();
+      
+      var messageHtml = '<div class="' + messageClass + '">' +
+        '<div><strong>' + sender + '</strong></div>' +
+        '<div>' + content + '</div>' +
+        '<div><small class="text-muted">' + timestamp + '</small></div>' +
+        '</div>';
+      
+      $("#chat-messages").append(messageHtml);
+      
+      // Scroll to bottom
+      var chatMessages = document.getElementById("chat-messages");
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Send message
+    function sendMessage() {
+      var message = $("#message-input").val().trim();
+      if (message && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(message);
+        $("#message-input").val("");
+      }
+    }
+    
+    // Send button click
+    $("#send-button").click(function() {
+      sendMessage();
+    });
+    
+    // Enter key in input field
+    $("#message-input").keypress(function(e) {
+      if (e.which === 13) { // Enter key
+        sendMessage();
+      }
+    });
+  });
+  </script>
+</body>
+</html>
