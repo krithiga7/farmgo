@@ -46,14 +46,47 @@ Farm2Home is a full-stack e-commerce platform designed to connect farmers direct
 
 ## Installation
 
-1. Clone the repository: ``` https://github.com/whitebeard10/farm2home.git ```
+### Option 1: Using Java Backend (Recommended)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/farmgo.git
+   cd farmgo
+   ```
+
+2. Prerequisites:
+   - Java 11 or higher
+   - Apache Maven
+   - Apache Tomcat 9.x
+
+3. Build the project:
+   ```bash
+   mvn clean install
+   ```
+
+4. Deploy to Tomcat:
+   - Copy `target/farmgo-backend-1.0-SNAPSHOT.war` to Tomcat's `webapps` folder
+   - Rename it to `farmgo.war`
+   - Start Tomcat server
+
+5. Access the application at: `http://localhost:8080/farmgo`
+
+### Option 2: Using PHP Backend (Legacy)
+
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/farmgo.git
+   ```
+
 2. Set up a local server environment (e.g., XAMPP, WAMP, or MAMP).
 
 3. Move the project files to your server's web directory.
 
 4. Configure the database connection in `config.php` (see [Database Setup](#database-setup)).
 
-5. Import the provided SQL file to set up the database schema.
+5. Import the provided SQL files to set up the database schema.
+
+6. Access the application at: `http://localhost/farmgo`
 
 ## Usage
 
@@ -104,7 +137,7 @@ For detailed information about the Java backend, see [README_JAVA.md](README_JAV
 
 ## Contributing
 
-Contributions to Farm2Home are welcome and appreciated! Here's how you can contribute:
+Contributions to FarmGo are welcome and appreciated! Here's how you can contribute:
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/YourFeature`)
@@ -113,6 +146,19 @@ Contributions to Farm2Home are welcome and appreciated! Here's how you can contr
 5. Open a Pull Request
 
 Please ensure your code adheres to the project's coding standards and include tests for new features when possible.
+
+### Development Workflow
+
+```bash
+# Build the Java backend
+mvn clean install
+
+# Run the application (Windows)
+run.bat
+
+# Or manually deploy to Tomcat
+copy target\farmgo-backend-1.0-SNAPSHOT.war %CATALINA_HOME%\webapps\farmgo.war
+```
 
 ## License
 
